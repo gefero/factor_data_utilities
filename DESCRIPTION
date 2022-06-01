@@ -1,0 +1,5 @@
+Package: utils_R
+Type: Package
+Title: Package for various utilities in R processing
+Version: 0.0.1.0
+RoxygenNote: 7.1.0

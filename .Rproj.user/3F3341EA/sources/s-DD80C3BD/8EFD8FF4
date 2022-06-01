@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1654115021361.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8EFD8FF4",
+    "lastKnownWriteTime" : 1654115156,
+    "last_content_update" : 1654115156232,
+    "path" : "/media/grosati/Elements/PEN/Datasets_ML/factor_data_utilities/R/clean_text.R",
+    "project_path" : "R/clean_text.R",
+    "properties" : {
+        "cursorPosition" : "38,22",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

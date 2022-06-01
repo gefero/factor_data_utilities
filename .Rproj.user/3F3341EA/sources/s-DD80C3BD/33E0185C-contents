@@ -1,0 +1,100 @@
+library(tidyverse)   # Easily Install and Load the 'Tidyverse'
+library(lubridate)   # Make Dealing with Dates a Little Easier
+library(tidytext)    # Text Mining using 'dplyr', 'ggplot2', and Other Tidy Tools
+library(topicmodels) # Topic Models  
+library(SnowballC)   # Snowball Stemmers Based on the C 'libstemmer' UTF-8 Library
+library(hrbrthemes)  # Additional Themes, Theme Components and Utilities for 'ggplot2'
+library(tictoc)
+
+path_raw_data <- "./train_topics_module/data/raw/tweets_2021_hasta_jun28.zip"
+path_proc_data <- "./train_topics_module/data/raw/tweets_2021_hasta_jun28_proc.csv"
+path_proc_data_rt <- "./train_topics_module/data/raw/tweets_2021_hasta_jun28_proc_rt.csv"
+
+tweets_con_rt <- read_csv(path_raw_data, 
+                   col_types = cols(
+                     id = col_character()
+                    )
+                   )
+
+tweets_con_rt <- tweets_con_rt %>%
+        arrange(created) %>% 
+        transmute(id,
+                  text, 
+                  created = created,
+                  bimestre = paste(year(created), ceiling(month(created)/2), 
+                                   sep = "_")) %>% # Sólo queremos texto y bimestre en el se publicaron
+        select(id, created, bimestre, text)
+
+tweets_sin_rt <- tweets_con_rt %>%
+  distinct(text, .keep_all = T) # Desc  artamos mensajes idénticos duplicados (en la práctica, retweets)
+  
+#write_csv(tweets, '../data/raw/tweets_argentinos_vacunas_raw.csv')
+
+# Citar a Kate Lyons + Jessica Peterka-Bonetta por diccionario de emojis
+dic_emojis <- read_csv("./train_topics_module/data/raw/dic_emojis.csv") %>% 
+        # espacios al principio y al final porque los emojis suelen escibirse pegados
+        mutate(EN = paste0(" emoji_", str_replace_all(EN, " ", "_"), " ")) %>% 
+        arrange(desc(utf8))
+
+#Para eliminar tildes, diéresis, etc
+removeDiacritics <- function(string) {
+        chartr(
+                "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ",
+                "SZszYAAAAAACEEEEIIIIDOOOOOUUUUYaaaaaaceeeeiiiidooooouuuuyy",
+                string
+        )
+}
+
+limpiar_texto_tweet <- function(text, emoji_from, emoji_to) {
+        
+        
+        # Util para eliminar links luego
+        url_pattern <- "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+        # y puntuacion y cosos, pero no hashtags
+        simbolos_molestos <- "[!\\?:\\-\\+\\.,;><\\|]" 
+        
+        text %>% 
+                #eliminar tildes y diéresis
+                removeDiacritics() %>% 
+                # pasar encoding a ASCII para poder matchear 
+                # contra diccionario de emojis
+                iconv(from="UTF-8", to ="ascii", sub = "byte") %>% 
+                # recuperar las "ñ", que se pierden con el paso a ascii
+                str_replace_all("<c3><b1>", "ñ") %>% 
+                # reemplazar código de emojis por descripcion, per diccionario
+                stringi::stri_replace_all_fixed(emoji_from, emoji_to,
+                                                vectorize_all = FALSE) %>%
+                # eliminar "mentions" (arrobas)
+                str_remove_all("[@][\\w_-]+") %>% 
+                # cambiar URLs por etiqueta genérica
+                str_replace_all(url_pattern, "_url_") %>% 
+                # eliminar ">", "<" y "/" tal como aparecen en el encoding
+                str_remove_all("&gt;|&lt;|&amp;") %>% 
+                # eliminar resaca unicode (comillas izquierda y derecha, 
+                # espacios raros, signos de exclamacion invertidos, etc)
+                str_remove_all("<.*>") %>%
+                # eliminar puntuacion y cosos, pero no hashtags
+                str_replace_all(simbolos_molestos, " ") %>% 
+                # cambiar digitos por etiqueta genérica
+                str_replace_all("(?<=^|\\s)\\d+", "_digitos_") %>% 
+                # a minuscula
+                tolower() %>% 
+                # colapsar multiples espacios en blanco seguidos en uno solo
+                str_squish() 
+                
+}
+
+tic('Start...')
+tweets_sin_rt <- tweets_sin_rt %>% 
+            mutate(text = limpiar_texto_tweet(text, emoji_from = dic_emojis$utf8, emoji_to = dic_emojis$EN))
+toc()
+  
+write_csv(tweets_sin_rt, path_proc_data)
+
+
+tic('Start...')
+tweets_con_rt <- tweets_con_rt %>% 
+  mutate(text = limpiar_texto_tweet(text, emoji_from = dic_emojis$utf8, emoji_to = dic_emojis$EN))
+toc()
+
+write_csv(tweets_con_rt, path_proc_data_rt)

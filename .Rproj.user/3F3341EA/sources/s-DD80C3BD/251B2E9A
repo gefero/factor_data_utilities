@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1654112677476.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "251B2E9A",
+    "lastKnownWriteTime" : 1654113352,
+    "last_content_update" : 1654113352295,
+    "path" : "/media/grosati/Elements/PEN/Datasets_ML/factor_data_utilities/R/bootstrap_wei.R",
+    "project_path" : "R/bootstrap_wei.R",
+    "properties" : {
+        "cursorPosition" : "15,34",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
